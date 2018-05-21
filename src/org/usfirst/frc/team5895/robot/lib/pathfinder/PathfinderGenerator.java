@@ -843,7 +843,7 @@ public class PathfinderGenerator {
 	         */
 	        Waypoint[] points = new Waypoint[] { 
 	                new Waypoint(0, 0, d2r(0)),
-	                new Waypoint(10, 3, d2r(0)),
+	                new Waypoint(10, 10, d2r(-90)),
 	        };
 	        Trajectory.Config config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_QUINTIC, Trajectory.Config.SAMPLES_HIGH, dt, max_vel, max_acc, max_jer);
 	        Trajectory trajectory = Pathfinder.generate(points, config);
@@ -854,6 +854,31 @@ public class PathfinderGenerator {
 	         
 	        return trajectory;      
 	    }
+	public Trajectory BackSCurve() {
+        String name = "BackSCurve";
+		double dt = 0.01; // in second
+		double max_vel = 6.0; // in f/s
+		double max_acc = 6.0; // in f/s/s
+		double max_jer = 50.0; // in f/s/s/s
+        /**
+         * x, y in feet
+         * angle in radian if not using d2r
+         * d2r will change angle in degree to radian
+         * positive number means (forward, left, left) 
+         */
+        Waypoint[] points = new Waypoint[] { 
+                new Waypoint(10, 10, d2r(-90)),
+                new Waypoint(0, 0, d2r(0)),
+        };
+        Trajectory.Config config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_QUINTIC, Trajectory.Config.SAMPLES_HIGH, dt, max_vel, max_acc, max_jer);
+        Trajectory trajectory = Pathfinder.generate(points, config);
+        
+        //create CSV file
+        makeCSV(trajectory, name);
+        //DriverStation.reportError("Finish Trajectory: "+ name, false);
+         
+        return trajectory;      
+    }
 	    
 	public Trajectory CenterRightSwitchCube() {
 	        String name = "CenterRightSwitchCube";

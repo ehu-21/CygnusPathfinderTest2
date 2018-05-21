@@ -37,14 +37,14 @@ public class DriveTrainV3 {
 	private static final double capSpeed = 0.5;
 	
 	private PathfinderGenerator pathMaster;
-	private PathfinderFollower pStraight, pInUse, pTest;
+	private PathfinderFollower pStraight, pInUse, pTest, pSCurve, pBackSCurve;
 	private PathfinderFollower pCenterRightSwitchFront, pCenterLeftSwitchFront, pCenterRightScale;
 	private PathfinderFollower pCenterLeftScale, pRightRightSwitchFront, pLeftLeftSwitchFront;
 	private PathfinderFollower pRightLeftSwitchBack, pLeftRightSwitchBack, pRightLeftSwitchFront;
 	private PathfinderFollower pLeftRightSwitchFront, pRightRightSwitchSide, pLeftLeftSwitchSide;
 	private PathfinderFollower pRightSwitchBlock, pLeftSwitchBlock, pRightRightScale, pLeftLeftScale;
 	private PathfinderFollower pRightScaleLeftSwitch, pLeftScaleRightSwitch, pRightLeftScale, pRightLeftDrive;
-	private PathfinderFollower pLeftRightDrive, pRightScaleCube, pRightScaleCubeBack, pSCurve, pCenterRightSwitchCube;
+	private PathfinderFollower pLeftRightDrive, pRightScaleCube, pRightScaleCubeBack, pCenterRightSwitchCube;
 	private PathfinderFollower pCenterRightSwitchRev, pBackwards, pRightScaleBackwards;
 	private PathfinderFollower pRightScaleForwards, pRightSecondScaleCube, pLeftSecondScaleCube;
 	
@@ -61,7 +61,12 @@ public class DriveTrainV3 {
 		rightDriveMaster = new TalonSRX(ElectricalLayout.MOTOR_DRIVE_RIGHT_MASTER);
 		rightDriveFollower1 = new VictorSPX(ElectricalLayout.MOTOR_DRIVE_RIGHT_FOLLOWER_1);
 		rightDriveFollower2 = new VictorSPX(ElectricalLayout.MOTOR_DRIVE_RIGHT_FOLLOWER_2);
-			
+		
+		leftDriveFollower1.follow(leftDriveMaster);
+		leftDriveFollower2.follow(leftDriveMaster);
+		rightDriveFollower1.follow(rightDriveMaster);
+		rightDriveFollower2.follow(rightDriveMaster);
+		
 		//initialize encoders
 		leftEncoder = new BetterEncoder(ElectricalLayout.ENCODER_DRIVE_LEFT_1, ElectricalLayout.ENCODER_DRIVE_LEFT_2, true, Encoder.EncodingType.k4X);
 		rightEncoder = new BetterEncoder(ElectricalLayout.ENCODER_DRIVE_RIGHT_1, ElectricalLayout.ENCODER_DRIVE_RIGHT_2, false, Encoder.EncodingType.k4X);
@@ -82,9 +87,11 @@ public class DriveTrainV3 {
 			DriverStation.reportError("Start generating paths with pathfinder", true);
 			//kp ki kd kv ka kturn
 			
-			pStraight = new PathfinderFollower(pathMaster.Straight(), 0.0, 0, 0, 1.0/12.75, 1.0/55.0, -0.0); //kp tuned from 0.15 to 0.045
-	/*		pSCurve = new PathfinderFollower(pathMaster.RightLeftScale(), 0.045, 0, 0, 1.0/13.75, 1.0/75.0, -0.009);
-			pBackwards = new PathfinderFollower(pathMaster.RightLeftScale(), 0.045, 0, 0, 1.0/13.75, 1.0/75.0, -0.009);
+			//pStraight = new PathfinderFollower(pathMaster.Straight(), 0.01, 0, 0, 1.0/11.90, 1.0/50.0, -0.02); //kp tuned from 0.15 to 0.045
+			pSCurve = new PathfinderFollower(pathMaster.SCurve(), 0.01, 0, 0, 1.0/11.90, 1.0/50.0, -0.0013);
+			pBackSCurve= new PathfinderFollower(pathMaster.BackSCurve(), 0.01, 0, 0, 1.0/11.90, 1.0/50.0, -0.0013);
+			
+	/*		pBackwards = new PathfinderFollower(pathMaster.RightLeftScale(), 0.045, 0, 0, 1.0/13.75, 1.0/75.0, -0.009);
 				
 			pRightRightScale  = new PathfinderFollower(pathMaster.RightRightScale(), 0.045, 0, 0, 1.0/13.75, 1.0/75.0, -0.009);
 			pRightScaleLeftSwitch = new PathfinderFollower(pathMaster.RightScaleLeftSwitch(), 0.045, 0, 0, 1.0/13.75, 1.0/75.0, -0.009);
@@ -185,6 +192,13 @@ public class DriveTrainV3 {
 	public void SCurve() {
 		resetEncoders();
 		pInUse = pSCurve;
+		pInUse.reset();
+		mode = Mode_Type.AUTO_PATHFINDER;
+	}
+	
+	public void backSCurve() {
+		resetEncoders();
+		pInUse = pBackSCurve;
 		pInUse.reset();
 		mode = Mode_Type.AUTO_PATHFINDER;
 	}
@@ -454,6 +468,14 @@ public class DriveTrainV3 {
 		return (leftEncoder.getRate()+rightEncoder.getRate())/2;
 	}
 	
+	public double getLeftVelocity() {
+		return leftEncoder.getRate();
+	}
+	
+	public double getRightVelocity() {
+		return rightEncoder.getRate();
+	}
+	
 	/**
 	 * @return the average distance traveled in feet from the left and right encoders.
 	 */
@@ -521,12 +543,8 @@ public class DriveTrainV3 {
 			case AUTO_PATHFINDER:
 				double[] p = pInUse.getOutput(rightEncoder.getDistance(), leftEncoder.getDistance(), getAngle()*Math.PI/180);
 				
-				leftDriveMaster.set(ControlMode.PercentOutput, p[1]); 
-				rightDriveMaster.set(ControlMode.PercentOutput, -p[0]);
-				leftDriveFollower1.set(ControlMode.PercentOutput, p[1]);
-				rightDriveFollower1.set(ControlMode.PercentOutput, -p[0]);
-				leftDriveFollower2.set(ControlMode.PercentOutput, p[1]);
-				rightDriveFollower2.set(ControlMode.PercentOutput, -p[0]);
+				leftDriveMaster.set(ControlMode.PercentOutput, p[0]); 
+				rightDriveMaster.set(ControlMode.PercentOutput, -p[1]);
 				break;
 			
 			case AUTO_MIRROR_PATHFINDER:
@@ -535,10 +553,6 @@ public class DriveTrainV3 {
 
 				leftDriveMaster.set(ControlMode.PercentOutput, p_mirror[0]);
 				rightDriveMaster.set(ControlMode.PercentOutput, -p_mirror[1]);
-				leftDriveFollower1.set(ControlMode.PercentOutput, p_mirror[0]);
-				rightDriveFollower1.set(ControlMode.PercentOutput, -p_mirror[1]);
-				leftDriveFollower2.set(ControlMode.PercentOutput, p_mirror[0]);
-				rightDriveFollower2.set(ControlMode.PercentOutput, -p_mirror[1]);
 				break;
 			
 			//drive straight with PID	
@@ -547,10 +561,6 @@ public class DriveTrainV3 {
 				rightspeed = -drivePID.getOutput(getDistanceTraveled());
 				leftDriveMaster.set(ControlMode.PercentOutput, leftspeed);
 				rightDriveMaster.set(ControlMode.PercentOutput, rightspeed);
-				leftDriveFollower1.set(ControlMode.PercentOutput, leftspeed);
-				rightDriveFollower1.set(ControlMode.PercentOutput, rightspeed);
-				leftDriveFollower2.set(ControlMode.PercentOutput, leftspeed);
-				rightDriveFollower2.set(ControlMode.PercentOutput, rightspeed);
 				break;	
 			
 			
@@ -575,10 +585,6 @@ public class DriveTrainV3 {
 				}
 				leftDriveMaster.set(ControlMode.PercentOutput, -leftspeed);
 				rightDriveMaster.set(ControlMode.PercentOutput, rightspeed);
-				leftDriveFollower1.set(ControlMode.PercentOutput, -leftspeed);
-				rightDriveFollower1.set(ControlMode.PercentOutput, rightspeed);
-				leftDriveFollower2.set(ControlMode.PercentOutput, -leftspeed);
-				rightDriveFollower2.set(ControlMode.PercentOutput, rightspeed);
 				break;
 			
 		}

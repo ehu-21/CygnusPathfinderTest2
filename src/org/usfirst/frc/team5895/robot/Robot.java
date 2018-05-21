@@ -62,10 +62,10 @@ public class Robot extends IterativeRobot {
 		r = new RecorderV2(10);
 		r.add("Time", Timer::getFPGATimestamp);
 		r.add("Drive Distance", drive::getDistanceTraveled);
-		r.add("Drive Velocity", drive::getVelocity);
-		r.add("voltage", drive::getVoltage);
-	//	r.add("Drive Left Velocity", drive::getLeftVelocity);
-	//	r.add("Drive Right Velocity", drive::getRightVelocity);
+//		r.add("Drive Velocity", drive::getVelocity);
+//		r.add("voltage", drive::getVoltage);
+		r.add("Drive Left Velocity", drive::getLeftVelocity);
+		r.add("Drive Right Velocity", drive::getRightVelocity);
 	/*	r.add("Elevator Height", elevator::getHeight);
 		r.add("Elevator State", elevator::getState);
 		r.add("Intake LeftClawSensor", intake::getLeftVoltage);
@@ -86,7 +86,7 @@ public class Robot extends IterativeRobot {
 	//	loop.add(r::record);
 		loop.start();
 		
-		recordLoop = new LooperV2(100);
+		recordLoop = new LooperV2(10);
 		loop.add(r::record);
 		loop.start();
 		
@@ -134,9 +134,11 @@ public class Robot extends IterativeRobot {
 		DriverStation.reportError("reseting navx", false);
 		drive.resetNavX();
 		
-		DriverStation.reportError("running drive straight now", false);
-		drive.straight();
-		
+		DriverStation.reportError("running arc curve now", false);
+		drive.SCurve();
+		Waiter.waitFor(drive::isPFinished, 5000);
+		DriverStation.reportError("running back curve now", false);
+		drive.backSCurve();
 	}
 
 	public void teleopPeriodic() {
