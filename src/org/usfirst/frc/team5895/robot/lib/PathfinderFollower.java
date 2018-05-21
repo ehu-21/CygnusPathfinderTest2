@@ -23,7 +23,7 @@ public class PathfinderFollower {
     private Trajectory trajectory;
     private Trajectory left_trajectory, right_trajectory;
     private TankModifier modifier; 
-    private final double wheelbase_width = 27.0/12; // Basan uses 27.0/12, Cygnus uses 25.0/12 
+    private final double wheelbase_width = 25.0/12; // Basan uses 27.0/12, Cygnus uses 25.0/12 
     private final double direction = 1.0;
     
 

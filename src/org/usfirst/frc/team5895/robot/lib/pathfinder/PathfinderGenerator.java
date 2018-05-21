@@ -38,7 +38,7 @@ public class PathfinderGenerator {
 	public Trajectory Straight() {
 		String name = "Straight";
 		double dt = 0.01; // in second
-		double max_vel = 6.0; // in f/s
+		double max_vel = 8.0; // in f/s
 		double max_acc = 6.0; // in f/s/s
 		double max_jer = 50.0; // in f/s/s/s
 		/**

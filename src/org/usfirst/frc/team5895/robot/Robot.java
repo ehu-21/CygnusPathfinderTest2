@@ -6,6 +6,7 @@ import org.usfirst.frc.team5895.robot.auto.*;
 import org.usfirst.frc.team5895.robot.framework.Looper;
 import org.usfirst.frc.team5895.robot.framework.LooperV2;
 import org.usfirst.frc.team5895.robot.framework.Recorder;
+import org.usfirst.frc.team5895.robot.framework.RecorderV2;
 import org.usfirst.frc.team5895.robot.framework.Waiter;
 import org.usfirst.frc.team5895.robot.lib.BetterJoystick;
 
@@ -21,6 +22,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Robot extends IterativeRobot {
 
 	LooperV2 loop;
+	LooperV2 recordLoop;
 	Elevator elevator;
 	IntakeV2 intake;
 	DriveTrainV3 drive;
@@ -32,7 +34,7 @@ public class Robot extends IterativeRobot {
 	boolean fastShoot = false;
 	boolean isDown = false;
 
-	Recorder r;
+	RecorderV2 r;
 	HashMap<String, Runnable> autoRoutines;
 	
 	BetterJoystick leftJoystick;
@@ -57,13 +59,14 @@ public class Robot extends IterativeRobot {
 		//blinkin.lightsNormal();
 	
 		//set up recorder
-		r = new Recorder(10);
+		r = new RecorderV2(10);
 		r.add("Time", Timer::getFPGATimestamp);
 		r.add("Drive Distance", drive::getDistanceTraveled);
 		r.add("Drive Velocity", drive::getVelocity);
+		r.add("voltage", drive::getVoltage);
 	//	r.add("Drive Left Velocity", drive::getLeftVelocity);
 	//	r.add("Drive Right Velocity", drive::getRightVelocity);
-		r.add("Elevator Height", elevator::getHeight);
+	/*	r.add("Elevator Height", elevator::getHeight);
 		r.add("Elevator State", elevator::getState);
 		r.add("Intake LeftClawSensor", intake::getLeftVoltage);
 		r.add("Intake RightClawSensor", intake::getRightVoltage);
@@ -74,13 +77,17 @@ public class Robot extends IterativeRobot {
 		}
 //		r.add("AVuto Routine", gameData::getAutoRoutine);
 //		r.add("Game Data", gameData::getGameData);
-		
+		*/
 		loop = new LooperV2(10);
-		loop.add(elevator::update);
-		loop.add(intake::update);
+	//	loop.add(elevator::update);
+	//	loop.add(intake::update);
 		loop.add(drive::update);
 	//	loop.add(lime::update);
-//		loop.add(r::record);
+	//	loop.add(r::record);
+		loop.start();
+		
+		recordLoop = new LooperV2(100);
+		loop.add(r::record);
 		loop.start();
 		
 		//set up auto map
@@ -198,4 +205,8 @@ public class Robot extends IterativeRobot {
 		drive.arcadeDrive(0, 0);
 	}
 
+	public void disabledPeriodic() {
+		DriverStation.reportError("" + drive.getDistanceTraveled(), false);
+	}
+	
 }

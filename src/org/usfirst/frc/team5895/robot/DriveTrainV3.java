@@ -82,7 +82,7 @@ public class DriveTrainV3 {
 			DriverStation.reportError("Start generating paths with pathfinder", true);
 			//kp ki kd kv ka kturn
 			
-			pStraight = new PathfinderFollower(pathMaster.Straight(), 0.0, 0, 0, 1.0/12, 1.0/45.0, -0.0); //kp tuned from 0.15 to 0.045
+			pStraight = new PathfinderFollower(pathMaster.Straight(), 0.0, 0, 0, 1.0/12.75, 1.0/55.0, -0.0); //kp tuned from 0.15 to 0.045
 	/*		pSCurve = new PathfinderFollower(pathMaster.RightLeftScale(), 0.045, 0, 0, 1.0/13.75, 1.0/75.0, -0.009);
 			pBackwards = new PathfinderFollower(pathMaster.RightLeftScale(), 0.045, 0, 0, 1.0/13.75, 1.0/75.0, -0.009);
 				
@@ -324,7 +324,7 @@ public class DriveTrainV3 {
 		pInUse = pRightRightSwitchFront;
 		pInUse.reset();
 		mode = Mode_Type.AUTO_PATHFINDER;
-	}
+	} 
 	
 	public void right_left_switch_back() {
 		resetEncoders();
@@ -475,6 +475,10 @@ public class DriveTrainV3 {
 	 */
 	public double getYPosition() {
 		return posY;
+	}
+	
+	public double getVoltage() {
+		return leftDriveMaster.getMotorOutputVoltage();
 	}
 	
 	/**
